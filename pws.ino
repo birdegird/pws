@@ -113,20 +113,6 @@ void loop() {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
 
-    // wait for MPU interrupt or extra packet(s) available
-    //while (!mpuInterrupt && fifoCount < packetSize) {
-        // other program behavior stuff here
-        // .
-        // .
-        // .
-        // if you are really paranoid you can frequently test in between other
-        // stuff to see if mpuInterrupt is true, and if so, "break;" from the
-        // while() loop to immediately process the MPU data
-        // .
-        // .
-        // .
-    //}
-
     // reset interrupt flag and get INT_STATUS byte
     mpuIntStatus = mpu.getIntStatus();
 
@@ -166,16 +152,17 @@ void loop() {
 }
 
 void MotorControl(double out){
-  
+   byte vel = abs(out);    // Absolute value of velocity
+ 
   // Sets direction
-  if (out > 4){              // forward
+  if (out > 5){              // forward
     Serial.print(F("+"));
     digitalWrite(a1,HIGH);
     digitalWrite(a2,LOW);
     
     digitalWrite(b1,LOW);
     digitalWrite(b2,HIGH);
-  }else if (out < -4){                     // backward
+  }else if (out < -5){                     // backward
     Serial.print(F("-"));
     digitalWrite(a1,LOW);
     digitalWrite(a2,HIGH);
@@ -191,17 +178,19 @@ void MotorControl(double out){
     digitalWrite(b1,HIGH);
     digitalWrite(b2,HIGH);
 
-    out=255;
+    if(vel<=1)
+      vel=0;
+    else 
+      vel=255;
   }
- 
-  byte vel = abs(out*2);    // Absolute value of velocity
-  
+   
   // Checks velocity fits the max ouptut range
-  if (vel<0)
-    vel=0;
-  if (vel > 255)
+  if (vel >= 15)
     vel=255;
-
+  else if (vel <= 1)
+    vel=0;
+  else
+    vel=30+vel*3;
   
   Serial.println(vel);
   
